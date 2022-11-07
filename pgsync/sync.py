@@ -10,7 +10,10 @@ import re
 import select
 import sys
 import time
+import warnings
 from collections import defaultdict
+
+from sqlalchemy.exc import SAWarning
 from typing import AnyStr, Dict, Generator, List, Optional, Set
 
 import click
@@ -67,6 +70,7 @@ from .utils import (
 )
 
 logger = logging.getLogger(__name__)
+warnings.filterwarnings("ignore", category=SAWarning, module="pgsync.base")
 
 
 class Sync(Base):
