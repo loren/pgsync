@@ -116,7 +116,6 @@ ELASTICSEARCH_VERIFY_CERTS = env.bool(
 
 # Postgres:
 PG_HOST = env.str("PG_HOST", default="localhost")
-PG_RO_HOST = env.str("PG_RO_HOST", default=PG_HOST)
 PG_PASSWORD = env.str("PG_PASSWORD", default=None)
 PG_PORT = env.int("PG_PORT", default=5432)
 PG_SSLMODE = env.str("PG_SSLMODE", default=None)
