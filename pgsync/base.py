@@ -27,6 +27,7 @@ from .exc import (
 )
 from .node import Node
 from .settings import (
+    PG_RO_HOST,
     PG_SSLMODE,
     PG_SSLROOTCERT,
     QUERY_CHUNK_SIZE,
@@ -76,6 +77,9 @@ class Base(object):
         self.__engine: sa.engine.Engine = _pg_engine(
             database, echo=False, **kwargs
         )
+        self.__ro_engine: sa.engine.Engine = _pg_engine(
+            database, echo=False, host=PG_RO_HOST, **kwargs
+        )
         self.__schemas: Optional[dict] = None
         # models is a dict of f'{schema}.{table}'
         self.__models: Dict[str] = {}
@@ -93,7 +97,13 @@ class Base(object):
             conn = self.engine.connect()
             conn.close()
         except Exception as e:
-            logger.exception(f"Cannot connect to database: {e}")
+            logger.exception(f"Cannot connect to primary database: {e}")
+            raise
+        try:
+            conn = self.ro_engine.connect()
+            conn.close()
+        except Exception as e:
+            logger.exception(f"Cannot connect to read-only database: {e}")
             raise
 
     def pg_settings(self, column: str) -> Optional[str]:
@@ -211,6 +221,11 @@ class Base(object):
     def engine(self) -> sa.engine.Engine:
         """Get the database engine."""
         return self.__engine
+
+    @property
+    def ro_engine(self) -> sa.engine.Engine:
+        """Get the read-only database engine."""
+        return self.__ro_engine
 
     @property
     def schemas(self) -> list:
@@ -786,7 +801,7 @@ class Base(object):
     ):
         chunk_size: int = chunk_size or QUERY_CHUNK_SIZE
         stream_results: bool = stream_results or STREAM_RESULTS
-        with self.engine.connect() as conn:
+        with self.ro_engine.connect() as conn:
             result = conn.execution_options(
                 stream_results=stream_results
             ).execute(statement.select())
@@ -795,7 +810,7 @@ class Base(object):
                     yield keys, row, primary_keys
 
     def fetchcount(self, statement: sa.sql.Subquery) -> int:
-        with self.engine.connect() as conn:
+        with self.ro_engine.connect() as conn:
             return conn.execute(
                 statement.original.with_only_columns(
                     [sa.func.COUNT()]
