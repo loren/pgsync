@@ -574,10 +574,10 @@ class Sync(Base):
                         extra["table"] = node.table
                         extra["column"] = key
 
-                if None in payload.old.values():
-                    for key, value in primary_fields.items():
-                        fields[key].append(0)
-
+                # if None in payload.old.values():
+                #     for key, value in primary_fields.items():
+                #         fields[key].append(0)
+                #
                 for doc_id in self.es._search(self.index, node.table, fields):
                     where = {}
                     params = doc_id.split(PRIMARY_KEY_DELIMITER)
@@ -932,12 +932,12 @@ class Sync(Base):
                 row: dict = Transform.transform(row, self.nodes)
 
                 row[META] = Transform.get_primary_keys(keys)
-                if extra:
-                    if extra["table"] not in row[META]:
-                        row[META][extra["table"]] = {}
-                    if extra["column"] not in row[META][extra["table"]]:
-                        row[META][extra["table"]][extra["column"]] = []
-                    row[META][extra["table"]][extra["column"]].append(0)
+                # if extra:
+                #     if extra["table"] not in row[META]:
+                #         row[META][extra["table"]] = {}
+                #     if extra["column"] not in row[META][extra["table"]]:
+                #         row[META][extra["table"]][extra["column"]] = []
+                #     row[META][extra["table"]][extra["column"]].append(0)
 
                 if self.verbose:
                     print(f"{(i+1)})")
